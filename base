@@ -1,0 +1,41 @@
+from google.colab import drive
+import pandas as pd
+import os
+
+# Mount Google Drive
+drive.mount('/content/drive')
+
+# Verkrijg het pad van de huidige werkdirectory
+script_pad = '/content/drive/MyDrive/1product/'  # Pas dit aan naar de map waarin je script staat
+
+# Specificeer het pad naar het bestand in dezelfde map als het script
+bestand_pad = os.path.join(script_pad, 'data.xlsx')
+
+# Lees het Excel-bestand in, begin bij de 17e rij (index 16) en sla de eerste 16 rijen over
+df = pd.read_excel(bestand_pad, header=16)
+
+# Controleer de kolomnamen om te verifiëren dat we de juiste kolommen gebruiken
+print("Kolomnamen in het bestand:", df.columns)
+
+# Stap 1: Kopieer de waarde uit kolom 'Default Barcode' (kolom B) naar kolom F ('Winkel') voor alle rijen
+df['Winkel'] = df['Default Barcode']
+
+# Stap 2: Wijzig de naam van de kolom 'Winkel' naar 'EAN'
+df.rename(columns={'Winkel': 'EAN'}, inplace=True)
+
+# Wijzig de naam van de kolom C naar 'product titel'
+df.columns = df.columns.str.strip()  # Verwijder eventuele extra spaties in kolomnamen
+df.rename(columns={df.columns[2]: 'product titel'}, inplace=True)
+
+# Kopieer de waarde uit de kolom 'Product Omschrijving' (kolom D) naar kolom C en zet het om naar kleine letters met de eerste letter van elk woord in hoofdletters
+df['product titel'] = df['Product Omschrijving'].apply(lambda x: x.capitalize() if isinstance(x, str) else x)
+
+# Controleer of de wijziging correct is door de eerste paar rijen te printen
+print(df[['EAN', 'Product Omschrijving', 'product titel']].head())
+
+# Sla het gewijzigde bestand op als een nieuw Excel-bestand
+output_bestand_pad = os.path.join(script_pad, 'modified_data.xlsx')
+df.to_excel(output_bestand_pad, index=False)
+
+# Geef een bericht weer dat de wijziging succesvol is
+print(f"Bestand succesvol opgeslagen als {output_bestand_pad}")
